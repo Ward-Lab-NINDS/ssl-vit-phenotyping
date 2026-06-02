@@ -1,0 +1,17 @@
+README.md
+pyproject.toml
+src/lib/__init__.py
+src/lib/phenotype/__init__.py
+src/lib/phenotype/procode_analysis.py
+src/lib/phenotype/ssl_cell_features.py
+src/lib/phenotype/ssl_model_loader.py
+src/manuscript/__init__.py
+src/manuscript/models/__init__.py
+src/manuscript/models/vit.py
+src/ssl_vit_phenotyping.egg-info/PKG-INFO
+src/ssl_vit_phenotyping.egg-info/SOURCES.txt
+src/ssl_vit_phenotyping.egg-info/dependency_links.txt
+src/ssl_vit_phenotyping.egg-info/requires.txt
+src/ssl_vit_phenotyping.egg-info/top_level.txt
+tests/test_procode_analysis.py
+tests/test_ssl_cell_features.py
