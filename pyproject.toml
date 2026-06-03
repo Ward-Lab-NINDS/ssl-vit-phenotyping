@@ -1,28 +1,38 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "ssl-vit-phenotyping"
 version = "0.1.0"
-description = "Self-supervised ViT feature extraction for segmented cell phenotyping."
+description = "Self-supervised ViT feature extraction and QC benchmarking for CellProfiler/Brieflow phenotyping and ProCode optical pooled screens."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-  "numpy>=1.24,<2",
-  "pandas>=2.0",
-  "scikit-learn>=1.3",
-  "tifffile>=2023.7.10",
-  "torch>=2.0",
+  "numpy",
+  "pandas",
+  "scikit-learn",
+  "torch",
+  "tifffile",
+  "tabulate",
 ]
 
 [project.optional-dependencies]
 dev = [
-  "pytest>=7.4",
+  "pytest",
+  "ruff",
 ]
+dinov3 = [
+  "transformers>=4.45",
+  "huggingface-hub>=0.24",
+]
+
+[project.scripts]
+ssl-vit-benchmark = "lib.phenotype.benchmarking:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
+[tool.ruff]
+line-length = 100
+src = ["src", "tests", "workflow"]

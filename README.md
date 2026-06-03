@@ -5,6 +5,34 @@ It augments existing CellProfiler/Brieflow-style per-cell phenotype tables with
 self-supervised Vision Transformer patch-token embeddings pooled inside each
 segmented cell mask.
 
+## Repository Description
+
+Self-supervised ViT feature extraction and QC benchmarking for CellProfiler/Brieflow phenotyping and ProCode optical pooled screens.
+
+Suggested GitHub topics: `self-supervised-learning`, `vision-transformer`, `cellprofiler`, `brieflow`, `phenotyping`, `optical-pooled-screening`, `procode`, `sgrna`, `bioimage-analysis`, `neuroscience`.
+
+## Pipeline Map
+
+```text
+Raw multichannel images
+        ↓
+Cell / nuclei / cytoplasm masks
+        ↓
+Segmentation QC gate
+        ↓
+ProCode decoding QC gate
+        ↓
+Classical CellProfiler features
+        ↓
+SSL ViT patch-token pooling
+        ↓
+Classical vs SSL vs combined benchmark
+        ↓
+sgRNA / perturbation phenotype ranking
+```
+
+Core rule: SSL embeddings should only be interpreted after segmentation and ProCode decoding are trustworthy.
+
 The implementation follows the workflow described in the notes:
 
 1. Load multichannel phenotype image data and segmentation masks.
@@ -75,6 +103,28 @@ pytest
 The tests use a tiny ViT and synthetic segmentation labels, so they validate the
 integration without requiring a trained checkpoint.
 
+## Demo
+
+A synthetic benchmark demo is included so contributors can run the benchmark without Ward Lab data:
+
+```bash
+bash demo/run_demo.sh
+```
+
+The demo writes a small phenotype table and benchmark outputs under `demo/synthetic_outputs/`.
+
+## Ground-Truth Data
+
+Do not upload several-gigabyte ground-truth images, masks, or annotations directly to GitHub. Track only manifests, split files, schemas, and tiny synthetic examples in this repository. Store large files with DVC, Git LFS, institutional object storage, or a citable archive.
+
+Start with:
+
+- `docs/ground_truth_data.md`
+- `data/ground_truth/manifest.template.csv`
+- `data/ground_truth/README.md`
+
+Use image-, plate-, well-, or replicate-level splits rather than random cell-level splits to avoid data leakage.
+
 ## ProCodes and sgRNA Analysis
 
 This work is organized around ProCode comparison and on/off combinatorial
@@ -95,3 +145,93 @@ oversized-mask fraction, undersegmentation proxy, and embedding separability.
 
 See `docs/procodes_ssl_analysis.md` for the current analysis plan and expected
 metadata columns.
+
+For the full segmentation and combinatorial ProCode workflow, see
+`docs/procode_segmentation_workflow.md`.
+
+After phenotype extraction, compare classical morphology, SSL embeddings, and
+combined features with:
+
+```bash
+ssl-vit-benchmark \
+  --input outputs/phenotype/phenotype_cp_ssl.tsv \
+  --output-dir outputs/benchmarks/ssl_feature_comparison \
+  --label-col sgRNA \
+  --feature-set classical=prefix:cell_,prefix:nuclei_,prefix:cytoplasm_ \
+  --feature-set ssl=prefix:ssl_ \
+  --feature-set combined=prefix:cell_,prefix:nuclei_,prefix:cytoplasm_,prefix:ssl_ \
+  --batch-col plate \
+  --batch-col well \
+  --write-report
+```
+
+
+## Optional DINOv3 Transfer Baseline
+
+DINOv3 can be attempted through the Hugging Face wrapper:
+
+```bash
+pip install -e ".[dinov3]"
+```
+
+Then set:
+
+```yaml
+ssl_model_builder: manuscript.models.dinov3:build_dinov3_hf_backbone_tokens
+ssl_ckpt: null
+ssl_normalization: minmax
+ssl_patch_size: 16
+ssl_model_kwargs:
+  model_name: facebook/dinov3-vitb16-pretrain-lvd1689m
+  channel_adapter: mean_to_rgb
+  apply_imagenet_norm: true
+```
+
+Treat DINOv3 as a transfer baseline, not an automatic replacement for a Ward-trained checkpoint. Public DINOv3 models are RGB natural-image backbones, so the wrapper uses an explicit channel adapter for microscopy channels and the benchmark should verify that biological separability improves without increasing plate/well/batch leakage. See `docs/dinov3_experiment.md`.
+
+## Brieflow Integration
+
+For folding this into Ward Lab's Brieflow fork, treat this repository as a
+prototype and migrate the pieces into a feature branch from `develop`.
+
+Recommended branch:
+
+```bash
+feat/ssl-vit-phenotyping
+```
+
+The integration should stay opt-in through config. With `ssl_enable=False`, the
+existing phenotype table should be unchanged. See:
+
+- `docs/brieflow_integration.md`
+- `workflow/config/ssl_phenotype.example.yml`
+
+## Model Choice
+
+The extraction code is intentionally model-agnostic. DINOv3 should be tested as
+the strongest current DINO-style candidate, while DINOv2 remains a stable
+fallback/comparator. MAE, iBOT, MoCo v3, and eventually a Ward-trained DINO-style
+model are good benchmark alternatives.
+
+See `docs/model_rationale.md` for the advisor-facing justification and benchmark
+plan.
+
+## QC Gate Documentation
+
+See `docs/qc_gates.md` for stop/continue thresholds, `docs/benchmark_outputs.md` for output interpretation, and `docs/ground_truth_data.md` for large ground-truth storage strategy.
+
+## Advisor Clarifications and Model Rationale
+
+Generated Python/build artifacts should not be tracked. If `__pycache__/`, `.pytest_cache/`, or `*.egg-info/` were committed before `.gitignore` was added, run:
+
+```bash
+bash scripts/remove_tracked_artifacts.sh
+git status
+```
+
+For checkpoint and preliminary-embedding questions, see:
+
+- `docs/advisor_clarifications.md`
+- `docs/model_rationale.md`
+
+The extraction script records model provenance in output metadata so preliminary embeddings can be traced back to the checkpoint path, checkpoint SHA256, model builder, patch size, pooling mode, normalization, selected channels, and git commit.

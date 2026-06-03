@@ -1,0 +1,51 @@
+# Example config block for adding optional SSL ViT features to Brieflow.
+# Keep SSL disabled by default until the model/checkpoint has been validated.
+
+phenotype:
+  ssl:
+    enable: false
+
+    # Model loading
+    ckpt: outputs/vit_models/ssl_pretraining/dino_best.pth
+    model_builder: manuscript.models.vit:build_vit_backbone_tokens
+    device: cuda
+    strict: false
+
+    # Image/token settings
+    patch_size: 8
+    use_channels: [0, 1]
+    pooling: mean
+    normalization: zscore
+
+    # PCA should use a global fitted basis if enabled.
+    pca_dim: null
+    pca_basis_path: null
+
+    # Optional model-builder kwargs for local wrappers.
+    model_kwargs:
+      in_channels: 2
+      image_size: 96
+      patch_size: 8
+      embed_dim: 128
+
+    # Optional DINOv3 transfer baseline. Public DINOv3 checkpoints are RGB
+    # backbones, so use an explicit channel adapter and benchmark against the
+    # local/Ward-trained checkpoint rather than assuming it is better.
+    #
+    # To use:
+    #   pip install -e ".[dinov3]"
+    #   set enable: true
+    #   set model_builder: manuscript.models.dinov3:build_dinov3_hf_backbone_tokens
+    #   set ckpt: null
+    #   set normalization: minmax
+    #   set model_kwargs as below
+    #
+    # model_builder: manuscript.models.dinov3:build_dinov3_hf_backbone_tokens
+    # ckpt: null
+    # patch_size: 16
+    # normalization: minmax
+    # model_kwargs:
+    #   model_name: facebook/dinov3-vitb16-pretrain-lvd1689m
+    #   channel_adapter: mean_to_rgb
+    #   apply_imagenet_norm: true
+    #   trust_remote_code: true

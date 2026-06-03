@@ -1,0 +1,24 @@
+# Example benchmark plan for comparing classical morphology, SSL embeddings,
+# and ProCode decoding quality after phenotype extraction.
+
+benchmark:
+  input: outputs/phenotype/phenotype_cp_ssl.tsv
+  output_dir: outputs/benchmarks/ssl_feature_comparison
+  label_col: sgRNA
+  perturbation_col: sgRNA
+  replicate_col: replicate
+
+  feature_sets:
+    classical:
+      prefixes: [cell_, nuclei_, cytoplasm_]
+    ssl:
+      prefixes: [ssl_]
+    combined:
+      prefixes: [cell_, nuclei_, cytoplasm_, ssl_]
+
+  procode:
+    channels: [procode_a, procode_b, procode_c]
+    expected_signatures: ["100", "010", "001", "110", "101", "011"]
+    threshold: null
+    min_margin: null
+    max_crosstalk: 0.25
