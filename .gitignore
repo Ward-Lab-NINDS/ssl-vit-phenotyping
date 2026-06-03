@@ -1,5 +1,22 @@
 .venv/
-.pytest_cache/
 __pycache__/
-*.py[cod]
-src/*.egg-info/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.DS_Store
+outputs/
+*.egg-info/
+
+# Large local ground-truth data. Track pointers/manifests, not raw GB files.
+data/ground_truth/raw/
+data/ground_truth/masks/
+data/ground_truth/**/*.tif
+data/ground_truth/**/*.tiff
+data/ground_truth/**/*.zarr/
+data/ground_truth/**/*.h5
+data/ground_truth/**/*.hdf5
+!data/ground_truth/manifest.template.csv
+!data/ground_truth/README.md
+
+demo/synthetic_outputs/

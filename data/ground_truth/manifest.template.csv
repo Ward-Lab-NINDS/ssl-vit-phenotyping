@@ -1,0 +1,2 @@
+sample_id,image_id,plate,well,field,density,image_path,cell_mask_path,nuclei_mask_path,cytoplasm_mask_path,annotation_path,procode_codebook_path,split,checksum_sha256
+sample_001,img_001,plate_01,A01,1,low,data/ground_truth/raw/img_001.tif,data/ground_truth/masks/img_001_cells.tif,data/ground_truth/masks/img_001_nuclei.tif,data/ground_truth/masks/img_001_cytoplasm.tif,data/ground_truth/annotations/img_001.csv,data/ground_truth/codebooks/procode_codebook.csv,calibration,REPLACE_WITH_SHA256

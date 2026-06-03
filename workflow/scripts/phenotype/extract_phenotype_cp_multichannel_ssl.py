@@ -1,11 +1,35 @@
 from __future__ import annotations
 
+import hashlib
+import subprocess
+from pathlib import Path
+
 import pandas as pd
 from tifffile import imread
 
 
 def _get_param(name: str, default=None):
     return snakemake.params.get(name, default)
+
+
+def _sha256(path):
+    if not path:
+        return "none"
+    path = Path(path)
+    if not path.exists():
+        return "missing"
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _git_commit():
+    try:
+        return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+    except Exception:
+        return "unknown"
 
 
 def _fallback_phenotype_from_labels(cells) -> pd.DataFrame:
@@ -94,6 +118,11 @@ if bool(_get_param("ssl_enable", False)):
     ssl_df["meta_ssl_pca_dim"] = (
         _get_param("ssl_pca_dim") if _get_param("ssl_pca_dim") is not None else "none"
     )
+    ssl_df["meta_ssl_model_builder"] = ssl_model_builder
+    ssl_df["meta_ssl_checkpoint"] = _get_param("ssl_ckpt") or "none"
+    ssl_df["meta_ssl_checkpoint_sha256"] = _sha256(_get_param("ssl_ckpt"))
+    ssl_df["meta_ssl_device"] = _get_param("ssl_device", "cuda")
+    ssl_df["meta_git_commit"] = _git_commit()
 
     if "label" not in phenotype_cp.columns:
         raise RuntimeError("Phenotype table is missing required 'label' column for SSL merge.")

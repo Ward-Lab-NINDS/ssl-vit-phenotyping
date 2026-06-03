@@ -121,8 +121,14 @@ def pool_tokens_by_label(
     tokens: torch.Tensor,
     labels_grid: np.ndarray,
     pooling: str = "mean",
+    trimmed_fraction: float = 0.1,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Pool `[N,D]` patch tokens by integer cell labels."""
+    """Pool `[N,D]` patch tokens by integer cell labels.
+
+    Supported pooling modes are ``mean``, ``mean_std``, ``median``, ``max``,
+    and ``trimmed_mean``. Median and trimmed mean are useful when segmentation
+    edges or debris produce a few contaminated patch tokens.
+    """
     if tokens.ndim != 2:
         raise ValueError(f"Expected tokens [N,D], got {tuple(tokens.shape)}")
     flat_labels = labels_grid.reshape(-1).astype(np.int32)
@@ -146,8 +152,21 @@ def pool_tokens_by_label(
             pooled = mean
         elif pooling == "mean_std":
             pooled = torch.cat([mean, selected.std(dim=0, unbiased=False)], dim=0)
+        elif pooling == "median":
+            pooled = selected.median(dim=0).values
+        elif pooling == "max":
+            pooled = selected.max(dim=0).values
+        elif pooling == "trimmed_mean":
+            if selected.shape[0] < 3:
+                pooled = mean
+            else:
+                sorted_tokens = selected.sort(dim=0).values
+                trim = int(selected.shape[0] * trimmed_fraction)
+                if trim > 0 and (2 * trim) < selected.shape[0]:
+                    sorted_tokens = sorted_tokens[trim:-trim]
+                pooled = sorted_tokens.mean(dim=0)
         else:
-            raise ValueError("pooling must be one of: 'mean', 'mean_std'")
+            raise ValueError("pooling must be one of: 'mean', 'mean_std', 'median', 'max', 'trimmed_mean'")
         features.append(pooled.numpy())
 
     return labels.astype(np.int32), np.vstack(features).astype(np.float32)
@@ -166,6 +185,7 @@ def extract_ssl_cell_embeddings(
     pca_basis_path: str | Path | None = None,
     pooling: str = "mean",
     normalization: str = "zscore",
+    trimmed_fraction: float = 0.1,
     wildcards: dict[str, Any] | None = None,
 ) -> pd.DataFrame:
     """Extract per-cell SSL descriptors by pooling ViT patch tokens inside labels."""
@@ -192,7 +212,7 @@ def extract_ssl_cell_embeddings(
     tokens = get_patch_tokens(model, image_t)[0]
     grid_hw = infer_patch_grid(tokens.shape[0], image_hw=cells.shape, patch_size=patch_size)
     labels_grid = labels_to_patch_grid(cells, grid_hw)
-    labels, features = pool_tokens_by_label(tokens, labels_grid, pooling=pooling)
+    labels, features = pool_tokens_by_label(tokens, labels_grid, pooling=pooling, trimmed_fraction=trimmed_fraction)
 
     if labels.size == 0:
         return pd.DataFrame({"label": pd.Series(dtype=np.int32)})
@@ -207,3 +227,45 @@ def extract_ssl_cell_embeddings(
     df = pd.DataFrame(features, columns=columns)
     df.insert(0, "label", labels)
     return df
+
+
+@torch.no_grad()
+def extract_ssl_compartment_embeddings(
+    data_phenotype: np.ndarray,
+    compartment_labels: dict[str, np.ndarray],
+    model: torch.nn.Module,
+    device: str = "cuda",
+    patch_size: int | None = 8,
+    use_channels: list[int] | None = None,
+    prefix: str = "ssl",
+    pooling: str = "mean",
+    normalization: str = "zscore",
+) -> pd.DataFrame:
+    """Extract SSL features separately for cell compartments.
+
+    Pass labels such as ``{"cell": cells, "nucleus": nuclei, "cytoplasm": cytoplasms}``.
+    The returned table merges compartment-specific embeddings on ``label`` using
+    prefixes like ``ssl_cell_000`` and ``ssl_nucleus_000``. This is the preferred
+    route when interpretability matters more than a single whole-cell vector.
+    """
+    outputs: list[pd.DataFrame] = []
+    for name, labels in compartment_labels.items():
+        compartment = extract_ssl_cell_embeddings(
+            data_phenotype=data_phenotype,
+            cells=labels,
+            model=model,
+            device=device,
+            patch_size=patch_size,
+            use_channels=use_channels,
+            prefix=f"{prefix}_{name}",
+            pooling=pooling,
+            normalization=normalization,
+        )
+        outputs.append(compartment)
+
+    if not outputs:
+        return pd.DataFrame({"label": pd.Series(dtype=np.int32)})
+    result = outputs[0]
+    for table in outputs[1:]:
+        result = result.merge(table, on="label", how="outer")
+    return result
