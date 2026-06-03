@@ -9,7 +9,6 @@ segmented cell mask.
 
 Self-supervised ViT feature extraction and QC benchmarking for CellProfiler/Brieflow phenotyping and ProCode optical pooled screens.
 
-Suggested GitHub topics: `self-supervised-learning`, `vision-transformer`, `cellprofiler`, `brieflow`, `phenotyping`, `optical-pooled-screening`, `procode`, `sgrna`, `bioimage-analysis`, `neuroscience`.
 
 ## Pipeline Map
 
