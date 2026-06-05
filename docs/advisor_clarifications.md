@@ -93,3 +93,13 @@ spatial tasks, which matches the cell-mask pooling strategy. The intended caveat
 is: public DINOv3 checkpoints are RGB natural-image models, so microscopy
 channels are passed through an explicit channel adapter and must be evaluated
 against DINOv2/local/Ward-trained checkpoints with the same QC gates.
+
+## Scope clarification after advisor feedback
+
+The project should not be described as SSL replacing Brieflow, CellPose, or SAM. A more accurate statement is:
+
+> The pipeline decouples phenotype representation from a single feature-extraction workflow. It accepts masks from Brieflow, CellPose, SAM-style workflows, manual labels, or other segmentation sources, then tests whether SSL embeddings improve downstream phenotype representation compared with or in addition to CellProfiler-style features.
+
+If the immediate goal is ProCode segmentation, neurofilament detection, channel separation, or Z-stack handling, then the next methods to prioritize are deconvolution, unmixing, and segmentation-specific models/QC. If the goal is phenotype extraction and selection after masks already exist, then SSL ViT embeddings remain viable as a benchmarked feature representation.
+
+The repository now records mask-source provenance columns so each phenotype table makes this distinction explicit.

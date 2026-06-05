@@ -51,3 +51,15 @@ held-out wells or plate for leakage checks
 ```
 
 This gives the advisor a concrete answer to: "Do you have preliminary embeddings?" without prematurely running the entire dataset.
+
+## Updated model-selection framing
+
+The model comparison should not be framed as chasing model names. The practical comparison is:
+
+1. classical CellProfiler/Brieflow morphology features;
+2. SSL features from a stable ViT checkpoint;
+3. DINOv3 or other transfer baselines;
+4. a future Ward-trained microscopy SSL checkpoint;
+5. combined classical + SSL features.
+
+Broader SSL models such as iBOT can be deprioritized unless they answer a specific benchmark question. The more important distinction is whether deep learning is being used for segmentation/signal cleanup or for downstream phenotype representation.
