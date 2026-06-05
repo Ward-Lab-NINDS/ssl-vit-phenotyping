@@ -9,28 +9,50 @@ segmented cell mask.
 
 Self-supervised ViT feature extraction and QC benchmarking for CellProfiler/Brieflow phenotyping and ProCode optical pooled screens.
 
+## Scope: SSL Does Not Replace Segmentation
+
+This repository now treats SSL/ViT features as a **downstream phenotype representation** layer, not as a direct replacement for segmentation. Cell, nuclei, and cytoplasm masks can come from Brieflow, CellPose, SAM-style workflows, manual annotation, or another segmentation source. The SSL step only becomes interpretable after the upstream masks and ProCode decoding pass QC.
+
+What this project does:
+
+- accepts existing masks from multiple segmentation sources;
+- records mask provenance and segmentation/QC status in phenotype outputs;
+- extracts SSL ViT patch-token features inside those masks;
+- benchmarks SSL features against CellProfiler/classical morphology features;
+- tests whether SSL helps perturbation/sgRNA separability without increasing batch leakage.
+
+What this project does **not** claim:
+
+- SSL embeddings alone replace CellPose, SAM, Brieflow, or manual segmentation;
+- DINOv2/DINOv3 automatically outperform a microscopy-trained checkpoint;
+- learned embeddings can compensate for poor masks, bad ProCode decoding, or unresolved channel/Z-stack artifacts.
+
+For advisor-facing project framing, see `docs/ssl_scope.md` and `docs/mask_source_strategy.md`.
+
+Suggested GitHub topics: `self-supervised-learning`, `vision-transformer`, `cellprofiler`, `brieflow`, `phenotyping`, `optical-pooled-screening`, `procode`, `sgrna`, `bioimage-analysis`, `neuroscience`.
 
 ## Pipeline Map
 
 ```text
-Raw multichannel images
+Raw multichannel images / Z-stacks
         ↓
-Cell / nuclei / cytoplasm masks
+External mask source
+(Brieflow, CellPose, SAM, manual labels, or other)
         ↓
-Segmentation QC gate
+Segmentation + mask provenance QC gate
         ↓
-ProCode decoding QC gate
+ProCode decoding / channel-unmixing QC gate
         ↓
-Classical CellProfiler features
+Classical CellProfiler features, if available
         ↓
-SSL ViT patch-token pooling
+SSL ViT patch-token pooling inside accepted masks
         ↓
-Classical vs SSL vs combined benchmark
+Classical vs SSL vs combined feature benchmark
         ↓
 sgRNA / perturbation phenotype ranking
 ```
 
-Core rule: SSL embeddings should only be interpreted after segmentation and ProCode decoding are trustworthy.
+Core rule: SSL embeddings are evaluated as downstream phenotype features and should only be interpreted after segmentation, mask provenance, and ProCode decoding are trustworthy.
 
 The implementation follows the workflow described in the notes:
 
@@ -232,5 +254,7 @@ For checkpoint and preliminary-embedding questions, see:
 
 - `docs/advisor_clarifications.md`
 - `docs/model_rationale.md`
+- `docs/ssl_scope.md`
+- `docs/mask_source_strategy.md`
 
 The extraction script records model provenance in output metadata so preliminary embeddings can be traced back to the checkpoint path, checkpoint SHA256, model builder, patch size, pooling mode, normalization, selected channels, and git commit.

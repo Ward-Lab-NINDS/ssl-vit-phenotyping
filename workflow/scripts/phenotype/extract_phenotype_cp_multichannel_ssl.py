@@ -37,6 +37,11 @@ def _fallback_phenotype_from_labels(cells) -> pd.DataFrame:
     return pd.DataFrame({"label": labels})
 
 
+def _metadata_param(name: str, default: str = "unspecified") -> str:
+    value = _get_param(name, default)
+    return str(value if value is not None else default)
+
+
 data_phenotype = imread(snakemake.input[0])
 nuclei = imread(snakemake.input[1])
 cells = imread(snakemake.input[2])
@@ -73,6 +78,40 @@ else:
     except ModuleNotFoundError:
         phenotype_cp = _fallback_phenotype_from_labels(cells)
 
+# Record mask/source provenance even when SSL is disabled. This keeps the output honest:
+# SSL is a downstream feature representation, not a replacement for segmentation.
+try:
+    from lib.phenotype.mask_source_qc import (
+        MaskSourceMetadata,
+        add_mask_source_metadata,
+        require_qc_pass,
+        validate_mask_source,
+    )
+
+    mask_source = validate_mask_source(_metadata_param("mask_source", "unknown"))
+    segmentation_qc_status = _metadata_param("segmentation_qc_status", "unknown")
+    require_qc_pass(
+        segmentation_qc_status,
+        require=bool(_get_param("require_segmentation_qc_pass", False)),
+    )
+    phenotype_cp = add_mask_source_metadata(
+        phenotype_cp,
+        MaskSourceMetadata(
+            mask_source=mask_source,
+            mask_source_detail=_metadata_param("mask_source_detail", "unspecified"),
+            segmentation_model=_metadata_param("segmentation_model", "unspecified"),
+            segmentation_qc_status=segmentation_qc_status,
+            ssl_role=_metadata_param("ssl_role", "downstream_feature_extraction"),
+        ),
+    )
+except ModuleNotFoundError:
+    # Keep compatibility when this script is copied into an older Brieflow tree
+    # before the helper module has been migrated.
+    phenotype_cp["meta_mask_source"] = _metadata_param("mask_source", "unknown")
+    phenotype_cp["meta_segmentation_qc_status"] = _metadata_param("segmentation_qc_status", "unknown")
+    phenotype_cp["meta_ssl_role"] = _metadata_param("ssl_role", "downstream_feature_extraction")
+
+
 if bool(_get_param("ssl_enable", False)):
     from lib.phenotype.ssl_cell_features import extract_ssl_cell_embeddings
     from lib.phenotype.ssl_model_loader import load_ssl_vit_model
@@ -105,6 +144,7 @@ if bool(_get_param("ssl_enable", False)):
         pca_basis_path=_get_param("ssl_pca_basis_path"),
         pooling=_get_param("ssl_pooling", "mean"),
         normalization=_get_param("ssl_normalization", "zscore"),
+        trimmed_fraction=float(_get_param("ssl_trimmed_fraction", 0.1)),
         wildcards=dict(snakemake.wildcards),
     )
     ssl_df["meta_ssl_patch_size"] = _get_param("ssl_patch_size", 8)
@@ -122,6 +162,8 @@ if bool(_get_param("ssl_enable", False)):
     ssl_df["meta_ssl_checkpoint"] = _get_param("ssl_ckpt") or "none"
     ssl_df["meta_ssl_checkpoint_sha256"] = _sha256(_get_param("ssl_ckpt"))
     ssl_df["meta_ssl_device"] = _get_param("ssl_device", "cuda")
+    ssl_df["meta_ssl_feature_role"] = _metadata_param("ssl_role", "downstream_feature_extraction")
+    ssl_df["meta_ssl_segmentation_replacement"] = "false"
     ssl_df["meta_git_commit"] = _git_commit()
 
     if "label" not in phenotype_cp.columns:

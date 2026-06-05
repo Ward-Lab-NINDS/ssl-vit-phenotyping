@@ -22,3 +22,15 @@ benchmark:
     threshold: null
     min_margin: null
     max_crosstalk: 0.25
+
+
+# Scope note: SSL features are downstream phenotype representations pooled inside accepted masks.
+# They are not a replacement for CellPose/SAM/Brieflow segmentation unless a separate
+# segmentation model is trained and validated against ground-truth masks.
+scope_note: downstream_feature_extraction_not_segmentation_replacement
+mask_metadata_columns:
+  - meta_mask_source
+  - meta_mask_source_detail
+  - meta_segmentation_model
+  - meta_segmentation_qc_status
+  - meta_ssl_role
