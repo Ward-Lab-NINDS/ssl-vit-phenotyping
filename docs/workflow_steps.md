@@ -98,7 +98,8 @@ before attempting whole-field SSL extraction.
 - `outputs/ssl_patch_test/patch_manifest.tsv`;
 - `outputs/ssl_patch_test/patch_phenotypes.tsv`;
 - `outputs/ssl_patch_test/ssl_patch_features.tsv` when SSL extraction runs;
-- `outputs/ssl_patch_test/ssl_patch_test_report.md`.
+- `outputs/ssl_patch_test/ssl_patch_test_report.md`;
+- `outputs/ssl_patch_test/open_patches_in_fiji.ijm` for native-pixel Fiji review.
 
 **Downstream dependency:** Use `patch_phenotypes.tsv` for preliminary
 intensity/morphology QC. Treat `ssl_patch_features.tsv` as biologically

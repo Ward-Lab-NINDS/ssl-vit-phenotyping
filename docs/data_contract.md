@@ -112,6 +112,7 @@ outputs/
     patch_phenotypes.tsv
     ssl_patch_features.tsv
     ssl_patch_test_report.md
+    open_patches_in_fiji.ijm
 ```
 
 ## 6. Agent safety rules
