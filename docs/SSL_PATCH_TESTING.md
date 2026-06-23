@@ -123,6 +123,55 @@ In Fiji:
 5. Inspect the tiled TIFF patches with native zoom and brightness/contrast
    controls.
 
+## Jupyter Interactive Review
+
+For pannable/zoomable matplotlib output inside a notebook, install `ipympl` in
+the same conda environment or virtual environment used by Jupyter:
+
+```bash
+pip install -e ".[notebook]"
+```
+
+or:
+
+```bash
+python -m pip install ipympl
+```
+
+Then add this setup cell near the top of the notebook:
+
+```python
+%matplotlib widget
+
+from pathlib import Path
+import sys
+
+repo = Path("/Users/makennarodriguez/Documents/brieflow-procodes-ssl/ssl-vit-phenotyping")
+sys.path.insert(0, str(repo / "scripts" / "notebooks"))
+
+from ssl_patch_interactive_review import show_patch, scatter_patch_phenotypes
+
+output_dir = repo / "outputs" / "ssl_patch_test_200"
+```
+
+Example interactive review cells:
+
+```python
+show_patch(output_dir, patch_index=0)
+```
+
+```python
+scatter_patch_phenotypes(
+    output_dir,
+    x="phenotype_foreground_fraction",
+    y="phenotype_largest_component_elongation",
+)
+```
+
+Use the notebook path for interactive plots and quick metric exploration; use
+Fiji when you need microscopy-native TIFF viewing, contrast/LUT controls, or
+manual inspection of the raw patch pixels.
+
 ## Interpreting the QC Report
 
 Use the report as a stop/continue gate:
