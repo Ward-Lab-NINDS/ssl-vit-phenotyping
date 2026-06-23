@@ -134,6 +134,32 @@ bash demo/run_demo.sh
 
 The demo writes a small phenotype table and benchmark outputs under `demo/synthetic_outputs/`.
 
+
+## Future Direction and Data Contract
+
+This project now has three explicit future-direction tracks:
+
+1. **Representation-learning argument:** justify why SSL is worth testing against classical morphology and autoencoder-style embeddings.
+2. **Subcell/Lundberg follow-up:** evaluate whether Human Protein Atlas / Subcell-style models, data structures, or weights can inform this project.
+3. **Workflow stability:** maintain a documented data contract so coding agents do not silently break image, mask, metadata, or output assumptions.
+
+Start with:
+
+- `docs/future_project_direction.md`
+- `docs/ssl_vs_autoencoders.md`
+- `docs/subcell_lundberg_followup.md`
+- `docs/data_contract.md`
+- `docs/workflow_steps.md`
+- `docs/agent_editing_contract.md`
+
+Validate a dataset manifest with:
+
+```bash
+ssl-validate-data-contract --manifest data/ground_truth/manifest.template.csv
+```
+
+The manifest validator checks required columns, allowed mask-source names, segmentation QC status values, duplicated image IDs, split coverage, and missing channel metadata. It does not require raw files to live inside GitHub.
+
 ## Ground-Truth Data
 
 Do not upload several-gigabyte ground-truth images, masks, or annotations directly to GitHub. Track only manifests, split files, schemas, and tiny synthetic examples in this repository. Store large files with DVC, Git LFS, institutional object storage, or a citable archive.
