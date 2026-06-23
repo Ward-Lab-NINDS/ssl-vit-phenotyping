@@ -26,6 +26,14 @@ dinov3 = [
   "transformers>=4.45",
   "huggingface-hub>=0.24",
 ]
+notebook = [
+  "ipympl",
+  "ipywidgets",
+]
+webapp = [
+  "streamlit",
+  "plotly",
+]
 
 [project.scripts]
 ssl-vit-benchmark = "lib.phenotype.benchmarking:main"
