@@ -6,7 +6,13 @@ __pycache__/
 .mypy_cache/
 .DS_Store
 outputs/
+data/
 *.egg-info/
+*.nd2
+*.tif
+*.tiff
+*.czi
+*.lif
 
 # Large local ground-truth data. Track pointers/manifests, not raw GB files.
 data/ground_truth/raw/

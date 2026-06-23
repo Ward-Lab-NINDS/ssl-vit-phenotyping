@@ -78,6 +78,38 @@ This document records each major step in the analysis workflow so humans and cod
 
 **Downstream dependency:** Feature benchmarking uses SSL columns by prefix.
 
+## Step 3a: Local patch test before whole-image scaling
+
+**Purpose:** Test local microscopy images on small 100x100 or 200x200 patches
+before attempting whole-field SSL extraction.
+
+**Primary script:** `scripts/run_ssl_patch_test.py`
+
+**Expected inputs:**
+
+- local image folder supplied with `--input-dir`;
+- patch size of `100` or `200`;
+- optional SSL checkpoint supplied with `--ssl-ckpt`;
+- optional channel selection and SSL model-builder settings.
+
+**Expected outputs:**
+
+- `outputs/ssl_patch_test/patches/`;
+- `outputs/ssl_patch_test/patch_manifest.tsv`;
+- `outputs/ssl_patch_test/patch_phenotypes.tsv`;
+- `outputs/ssl_patch_test/ssl_patch_features.tsv` when SSL extraction runs;
+- `outputs/ssl_patch_test/ssl_patch_test_report.md`.
+
+**Downstream dependency:** Use `patch_phenotypes.tsv` for preliminary
+intensity/morphology QC. Treat `ssl_patch_features.tsv` as biologically
+meaningful only when generated with a trained or deliberately selected transfer
+checkpoint. Random SSL extraction requires `--allow-random-ssl` and is a
+plumbing test only.
+
+**QC or stop conditions:** Stop before whole-image scaling if no patches are
+selected, many images fail to load, foreground masks are mostly background, or a
+checkpoint-free run is being interpreted as SSL biology.
+
 ## Step 4: ProCode decoding and QC
 
 **Purpose:** Decode ProCode on/off signatures and identify ambiguous cells before biological interpretation.
