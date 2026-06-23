@@ -29,6 +29,7 @@ dinov3 = [
 
 [project.scripts]
 ssl-vit-benchmark = "lib.phenotype.benchmarking:main"
+ssl-validate-data-contract = "lib.phenotype.data_contract:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

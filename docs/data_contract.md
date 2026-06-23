@@ -1,0 +1,119 @@
+# Data Contract for SSL Phenotyping
+
+This file defines the expected data structure for the SSL phenotyping workflow. It is intended for humans and coding agents. If the data structure changes, update this document before changing code.
+
+## 1. Raw input image structure
+
+Document each dataset using this template.
+
+| Field | Required? | Description | Example |
+| --- | --- | --- | --- |
+| `image_path` | yes | Path to raw or preprocessed multichannel image | `images/plate1/A01/site001.tif` |
+| `image_format` | yes | TIFF, OME-TIFF, Zarr, HDF5, etc. | `tif` |
+| `height_px` | yes | Image height in pixels | `2048` |
+| `width_px` | yes | Image width in pixels | `2048` |
+| `n_channels` | yes | Number of channels in the image | `4` |
+| `channel_names` | yes | Ordered channel labels | `nuclei,marker,procode_1,procode_2` |
+| `z_slices` | no | Number of z planes if z-stack | `7` |
+| `tile_size` | no | Tile/crop size if tiled | `512` |
+| `preprocessing_applied` | yes | Any preprocessing already done | `flatfield,z_project_max` |
+
+## 2. Mask structure
+
+The SSL step requires masks or labels from an upstream segmentation source. Masks may come from Brieflow, CellPose, SAM-style workflows, manual labels, StarDist, or another documented method.
+
+| Field | Required? | Description |
+| --- | --- | --- |
+| `cell_mask_path` | yes | Integer-labeled cell mask path |
+| `nuclei_mask_path` | recommended | Integer-labeled nuclei mask path |
+| `cytoplasm_mask_path` | optional | Integer-labeled cytoplasm mask path |
+| `mask_source` | yes | `brieflow`, `cellpose`, `sam`, `manual`, `stardist`, or `other` |
+| `segmentation_model` | recommended | Model/tool name and version if available |
+| `segmentation_qc_status` | yes | `pass`, `fail`, `unknown`, or `not_checked` |
+| `segmentation_qc_notes` | optional | Free-text notes |
+
+Mask rules:
+
+- Background should be label `0`.
+- Cell/object labels should be positive integers.
+- Masks must have the same height/width as the image after preprocessing.
+- If labels are remapped, the mapping must be documented.
+
+## 3. Metadata structure
+
+Each image or tile should connect to experimental metadata.
+
+| Column | Required? | Description |
+| --- | --- | --- |
+| `image_id` | yes | Stable image/tile identifier |
+| `plate` | recommended | Plate ID |
+| `well` | recommended | Well ID |
+| `site` | recommended | Field/site ID |
+| `condition` | recommended | Treatment or condition |
+| `sgRNA` | optional | sgRNA assignment if known |
+| `perturbation` | optional | Gene/perturbation assignment |
+| `replicate` | recommended | Biological or technical replicate |
+| `timepoint` | optional | Timepoint if longitudinal |
+| `density` | optional | Cell-density condition |
+| `qc_exclude` | recommended | Whether to exclude the image/cell |
+| `qc_reason` | optional | Reason for exclusion |
+
+## 4. Phenotype table output
+
+The merged phenotype table should preserve cell identity and provenance.
+
+Required columns:
+
+- `label`
+- `image_id` when available
+- `meta_mask_source`
+- `meta_segmentation_model`
+- `meta_segmentation_qc_status`
+- `meta_ssl_feature_role`
+- `meta_ssl_segmentation_replacement`
+
+Classical features should use stable prefixes such as:
+
+- `cell_`
+- `nuclei_`
+- `cytoplasm_`
+
+SSL features should use stable prefixes such as:
+
+- `ssl_`
+- `ssl_pca_`
+- `ssl_cell_`
+- `ssl_nucleus_`
+- `ssl_cytoplasm_`
+
+## 5. Output directory structure
+
+Recommended structure:
+
+```text
+outputs/
+  phenotype/
+    phenotype_cp_ssl.tsv
+  qc/
+    segmentation_qc.tsv
+    procode_qc.tsv
+  benchmarks/
+    feature_separability.tsv
+    feature_ranking.tsv
+    batch_signal_plate.tsv
+    benchmark_report.md
+  embeddings/
+    ssl_embeddings.tsv
+  manifests/
+    dataset_manifest.csv
+```
+
+## 6. Agent safety rules
+
+Coding agents should not change these assumptions without updating this document:
+
+- SSL is downstream feature extraction, not segmentation replacement.
+- Masks are external inputs with provenance.
+- ProCode decoding QC happens before biological interpretation.
+- Large image/mask files should not be committed to GitHub.
+- New output files should be documented with expected columns and downstream use.
