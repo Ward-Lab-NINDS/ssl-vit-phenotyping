@@ -5,6 +5,14 @@ It augments existing CellProfiler/Brieflow-style per-cell phenotype tables with
 self-supervised Vision Transformer patch-token embeddings pooled inside each
 segmented cell mask.
 
+## Lab Web App Quick Access
+
+Start here for the interactive Streamlit patch phenotyping app:
+
+- [Lab Web App Access](LAB_WEB_APP_ACCESS.md)
+- [Detailed Web App Documentation](docs/WEB_APP.md)
+- [Phenotyping Synopsis](docs/PHENOTYPING_SYNOPSIS.md)
+
 ## Repository Description
 
 Self-supervised ViT feature extraction and QC benchmarking for CellProfiler/Brieflow phenotyping and ProCode optical pooled screens.
