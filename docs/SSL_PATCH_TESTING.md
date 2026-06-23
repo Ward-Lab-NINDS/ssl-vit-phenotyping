@@ -172,6 +172,19 @@ Use the notebook path for interactive plots and quick metric exploration; use
 Fiji when you need microscopy-native TIFF viewing, contrast/LUT controls, or
 manual inspection of the raw patch pixels.
 
+A ready-to-run notebook is available here:
+
+```text
+notebooks/ssl_patch_interactive_review.ipynb
+```
+
+It includes:
+
+- an interactive patch browser;
+- mask overlay toggles;
+- interactive phenotype scatterplots;
+- a lightweight image upload preview cell for TIFF/PNG/JPEG files.
+
 ## Interpreting the QC Report
 
 Use the report as a stop/continue gate:
