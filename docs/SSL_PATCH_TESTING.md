@@ -88,6 +88,40 @@ The runner writes:
   from the existing `extract_ssl_cell_embeddings` token pooling workflow when
   `--ssl-ckpt` or `--allow-random-ssl` is supplied.
 - `outputs/ssl_patch_test/ssl_patch_test_report.md`: QC summary.
+- `outputs/ssl_patch_test/open_patches_in_fiji.ijm`: run-specific Fiji/ImageJ
+  macro for opening the patch TIFFs as native-pixel images.
+
+## Fiji Review
+
+Use Fiji for visual readout instead of judging morphology from PNG montages.
+The patch runner writes TIFF patches that Fiji can open directly, preserving
+native pixels, LUT/contrast controls, zoom, and measurement tools.
+
+This integration is a Fiji macro, not a plugin. A macro is the right level for
+reviewing local patch outputs because it is transparent, easy to edit, and does
+not require packaging or installation. A plugin would make sense later only if
+the project needs a custom interactive UI or a reusable packaged analysis tool.
+
+Run-specific macro:
+
+```text
+outputs/ssl_patch_test/open_patches_in_fiji.ijm
+```
+
+Generic repo macro:
+
+```text
+scripts/fiji/open_ssl_patch_test_patches.ijm
+```
+
+In Fiji:
+
+1. Open Fiji.
+2. Use `File > Open...` and select the `.ijm` macro.
+3. Click `Run`.
+4. For the generic macro, choose the patch-test output folder.
+5. Inspect the tiled TIFF patches with native zoom and brightness/contrast
+   controls.
 
 ## Interpreting the QC Report
 
