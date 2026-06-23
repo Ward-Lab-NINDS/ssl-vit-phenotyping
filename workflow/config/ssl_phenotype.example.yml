@@ -2,6 +2,34 @@
 # Keep SSL disabled by default until the model/checkpoint has been validated.
 
 phenotype:
+  # Current ProCode/readout channel metadata. V5/NWS/T7 are barcode-like
+  # ProCode readouts. The nucleus channel is structural/reference only.
+  channel_metadata:
+    - name: V5
+      wavelength_nm: 647
+      role: procode_readout
+      color_label: far_red
+    - name: NWS
+      wavelength_nm: 488
+      role: procode_readout
+      color_label: green
+    - name: T7
+      wavelength_nm: 568
+      role: procode_readout
+      color_label: orange
+    - name: nucleus
+      wavelength_nm: null
+      role: structural_reference
+      color_label: unknown
+
+  procode_readout_channels:
+    - V5
+    - NWS
+    - T7
+
+  structural_reference_channels:
+    - nucleus
+
   ssl:
     enable: false
 
@@ -12,7 +40,8 @@ phenotype:
     strict: false
 
 
-    # Scope/provenance. SSL is downstream feature extraction, not segmentation replacement.
+    # Scope/provenance. SSL is downstream feature extraction, not segmentation
+    # replacement or ProCode decoding.
     ssl_role: downstream_feature_extraction
     mask_source: brieflow        # brieflow, cellpose, sam, manual, stardist, other
     mask_source_detail: existing Brieflow/CellPose-compatible masks
@@ -22,7 +51,9 @@ phenotype:
 
     # Image/token settings
     patch_size: 8
-    use_channels: [0, 1]
+    # Use channel indexes from channel_metadata. Interpret SSL only after V5/NWS/T7
+    # readout QC and nucleus/mask QC pass.
+    use_channels: [0, 1, 2, 3]
     pooling: mean
     trimmed_fraction: 0.1
     normalization: zscore

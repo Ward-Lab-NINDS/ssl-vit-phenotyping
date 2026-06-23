@@ -242,7 +242,9 @@ def write_benchmark_report(outputs: dict[str, pd.DataFrame], output_dir: Path) -
 
     lines.extend(["", "## ProCode QC"] )
     if procode_qc.empty:
-        lines.append("No ProCode channels were supplied, so ProCode QC was skipped.")
+        lines.append(
+            "No ProCode/readout channels were supplied, so V5/NWS/T7 readout QC was skipped."
+        )
     else:
         lines.append(procode_qc.to_markdown(index=False))
         ambiguous = float(procode_qc.iloc[0].get("fraction_ambiguous", np.nan))
@@ -254,7 +256,7 @@ def write_benchmark_report(outputs: dict[str, pd.DataFrame], output_dir: Path) -
         "",
         "## Interpretation guardrails",
         "",
-        "1. Do not interpret SSL clusters until segmentation QC and ProCode decoding pass.",
+        "1. Do not interpret SSL clusters until segmentation QC and V5/NWS/T7 ProCode/readout decoding pass.",
         "2. Prefer combined features only when they improve separability without increasing batch signal.",
         "3. If plate, well, density, or imaging date predicts embeddings better than sgRNA, treat the run as batch-confounded.",
         "4. Preserve the generated TSVs with the exact phenotype input and model provenance metadata.",

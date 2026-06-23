@@ -20,6 +20,7 @@ RECOMMENDED_MANIFEST_COLUMNS = (
     "well",
     "site",
     "channel_names",
+    "channel_metadata_path",
     "condition",
     "replicate",
     "split",
@@ -125,6 +126,19 @@ def validate_manifest_table(
                     "warning",
                     "channel_names",
                     f"{int(empty_channels.sum())} rows have missing channel_names",
+                )
+            )
+        generic_channels = manifest["channel_names"].fillna("").astype(str).str.contains(
+            r"\bch0?[1-4]\b|procode_1|procode_2",
+            case=False,
+            regex=True,
+        )
+        if generic_channels.any():
+            issues.append(
+                DataContractIssue(
+                    "warning",
+                    "channel_names",
+                    "Prefer biological labels such as V5,NWS,T7,nucleus when channel mapping metadata are available",
                 )
             )
 

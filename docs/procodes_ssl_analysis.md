@@ -6,6 +6,11 @@ The working assumption from the Frankel paper is that combinatorial epitope tags
 are powerful when decoding is clean: strong signal separation and low crosstalk
 are required before downstream clustering or perturbation mapping can be trusted.
 
+Current channel interpretation: `V5` / `647` far red, `NWS` / `488` green, and
+`T7` / `568` orange are ProCode/readout channels. The fourth likely nucleus
+channel is structural/reference signal used for segmentation, image QC, and
+cell linkage. Do not use the nucleus channel as a ProCode identity bit.
+
 ## Immediate Priorities
 
 1. Compare ProCode on/off signatures across hand-sorted images and pooled ProCode
@@ -20,7 +25,7 @@ are required before downstream clustering or perturbation mapping can be trusted
 
 The `lib.phenotype.procode_analysis` module provides:
 
-- `add_procode_signatures`: thresholds ProCode channels into binary on/off
+- `add_procode_signatures`: thresholds V5/NWS/T7 ProCode/readout channels into binary on/off
   signatures and records margin plus crosstalk index per cell.
 - `summarize_procode_decoding`: summarizes decoded signatures, expected codes,
   signal margin, and crosstalk.

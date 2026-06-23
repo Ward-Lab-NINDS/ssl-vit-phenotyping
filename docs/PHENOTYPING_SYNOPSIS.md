@@ -29,6 +29,11 @@ Optional SSL embeddings when a trained checkpoint is supplied
 QC report, Fiji macro, Jupyter review, and Streamlit web app
 ```
 
+Channel interpretation for ProCode data: `V5` / `647` far red, `NWS` / `488`
+green, and `T7` / `568` orange are barcode-like ProCode/readout channels. The
+likely nucleus channel is structural/reference signal for segmentation, cell
+counting, image QC, and linking readout signal back to cells.
+
 ## Current Interpretable Phenotypes
 
 These are available now without a trained SSL checkpoint:
@@ -42,7 +47,7 @@ These are available now without a trained SSL checkpoint:
 | Elongation | Shape anisotropy of the largest foreground component | Useful for neurite-like or elongated morphology |
 | Boundary fraction | How fragmented or edge-heavy foreground is | Flags noisy masks or complex morphology |
 | Gradient mean | Local texture/edge content | Proxy for neurite texture and subcellular structure |
-| Per-channel intensity | Mean/std and foreground mean per channel | Supports ProCode/channel QC |
+| Per-channel intensity | Mean/std and foreground mean per channel | Supports V5/NWS/T7 ProCode/readout QC |
 
 ## What SSL Adds Later
 

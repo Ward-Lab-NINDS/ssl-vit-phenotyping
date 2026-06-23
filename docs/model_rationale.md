@@ -1,6 +1,6 @@
 # Model Rationale and Benchmark Plan
 
-The goal is not to pick a model by reputation. The goal is to test whether SSL ViT features add phenotype signal beyond classical morphology after segmentation and ProCode decoding pass QC.
+The goal is not to pick a model by reputation. The goal is to test whether SSL ViT features add phenotype signal beyond classical morphology after segmentation and V5/NWS/T7 ProCode/readout decoding pass QC.
 
 ## Default stance
 

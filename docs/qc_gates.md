@@ -3,7 +3,7 @@
 This pipeline should not allow learned SSL embeddings to compensate for poor upstream biology or image processing. Interpret outputs in this order:
 
 1. segmentation QC
-2. ProCode on/off decoding QC
+2. V5/NWS/T7 ProCode/readout on/off decoding QC
 3. sgRNA/SBS assignment quality
 4. classical morphology separability
 5. SSL and combined embedding separability
@@ -11,7 +11,7 @@ This pipeline should not allow learned SSL embeddings to compensate for poor ups
 
 ## 1. Segmentation QC gate
 
-Run segmentation metrics before ProCode decoding or SSL interpretation.
+Run segmentation metrics before ProCode/readout decoding or SSL interpretation.
 
 Recommended warning flags:
 
@@ -26,15 +26,15 @@ Recommended warning flags:
 
 Stop or retune segmentation when oversized masks, touching edges, or small masks increase sharply at higher cell density.
 
-## 2. ProCode decoding QC gate
+## 2. ProCode/readout decoding QC gate
 
-Do not cluster cells by SSL features until ProCode decoding is clean.
+Do not cluster cells by SSL features until V5/NWS/T7 ProCode/readout decoding is clean. The likely nucleus channel is a structural/reference channel for segmentation and cell linkage, not a ProCode identity channel.
 
 Recommended warning flags:
 
 | Metric | Meaning | Initial warning threshold |
 |---|---|---:|
-| `fraction_empty_signature` | no channels pass threshold | > 0.05 |
+| `fraction_empty_signature` | no V5/NWS/T7 readout channels pass threshold | > 0.05 |
 | `fraction_invalid_signature` | decoded code not in codebook | > 0.05 |
 | `median_procode_margin` | on/off channel separation | inspect per channel |
 | `median_crosstalk_index` | off-channel leakage relative to on signal | > 0.30 |
@@ -91,7 +91,7 @@ Good signs:
 | Result | Action |
 |---|---|
 | segmentation fail | retune masks or lower cell density |
-| ProCode fail | retune thresholds, exposure, bleedthrough correction, or codebook |
+| ProCode/readout fail | retune V5/NWS/T7 thresholds, exposure, bleedthrough correction, or codebook |
 | feature fail but QC pass | test alternate SSL model/pooling or add compartments |
 | batch signal high | regress batch, redesign acquisition, or split analysis by batch |
 | all gates pass | proceed to phenotype ranking and biological interpretation |

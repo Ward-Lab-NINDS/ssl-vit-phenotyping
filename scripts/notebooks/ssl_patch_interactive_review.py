@@ -87,14 +87,17 @@ def scatter_patch_phenotypes(
 ) -> None:
     _, phenotypes = load_patch_test(output_dir)
     plot_data = phenotypes.copy()
-    plot_data["channel"] = plot_data["source_image"].str.extract(r"-(ch\d+)")[0].fillna("unknown")
+    inferred = plot_data["source_image"].str.extract(r"-(ch\d+)")[0]
+    plot_data["channel"] = inferred.fillna("mapping_unknown").map(
+        lambda value: f"{value}_mapping_unknown" if str(value).startswith("ch") else value
+    )
 
     fig, axis = plt.subplots(figsize=(7, 5))
     for channel, part in plot_data.groupby("channel"):
         axis.scatter(part[x], part[y], label=channel, alpha=0.8)
     axis.set_xlabel(x)
     axis.set_ylabel(y)
-    axis.set_title("Patch phenotype scatter")
+    axis.set_title("Patch phenotype scatter; channel metadata required for V5/NWS/T7/nucleus labels")
     axis.grid(alpha=0.25)
     axis.legend(title="Channel")
     fig.tight_layout()

@@ -119,22 +119,25 @@ def display_patch(patch_path: str, title: str, show_overlay: bool) -> None:
         dragmode="pan",
         height=560,
     )
-    st.plotly_chart(fig, use_container_width=True, config={"scrollZoom": True})
+    st.plotly_chart(fig, width="stretch", config={"scrollZoom": True})
 
 
 def phenotype_scatter(phenotypes: pd.DataFrame, x_col: str, y_col: str) -> None:
     data = phenotypes.copy()
-    data["channel"] = data["source_image"].str.extract(r"-(ch\d+)")[0].fillna("unknown")
+    inferred = data["source_image"].str.extract(r"-(ch\d+)")[0]
+    data["channel"] = inferred.fillna("mapping_unknown").map(
+        lambda value: f"{value}_mapping_unknown" if str(value).startswith("ch") else value
+    )
     fig = px.scatter(
         data,
         x=x_col,
         y=y_col,
         color="channel",
         hover_data=["patch_id", "source_image"],
-        title="Patch phenotype scatter",
+        title="Patch phenotype scatter; use channel metadata for V5/NWS/T7/nucleus labels",
     )
     fig.update_layout(height=560, margin=dict(l=10, r=10, t=48, b=10))
-    st.plotly_chart(fig, use_container_width=True, config={"scrollZoom": True})
+    st.plotly_chart(fig, width="stretch", config={"scrollZoom": True})
 
 
 def synopsis() -> None:
@@ -222,7 +225,7 @@ def main() -> None:
                 accept_multiple_files=True,
             )
 
-        run_clicked = st.button("Run Patch Phenotyping", type="primary", use_container_width=True)
+        run_clicked = st.button("Run Patch Phenotyping", type="primary", width="stretch")
 
     if "output_dir" not in st.session_state:
         st.session_state.output_dir = REPO_ROOT / "outputs" / "ssl_patch_test_200"
@@ -302,7 +305,7 @@ def main() -> None:
             index=phenotype_cols.index(default_y) if default_y in phenotype_cols else 0,
         )
         phenotype_scatter(phenotypes, x_col, y_col)
-        st.dataframe(phenotypes, use_container_width=True, height=360)
+        st.dataframe(phenotypes, width="stretch", height=360)
 
     with tabs[2]:
         st.subheader("QC Report And Exports")

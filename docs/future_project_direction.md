@@ -6,9 +6,11 @@ This document records the current project direction after advisor and peer feedb
 
 The project should answer a narrow, testable question:
 
-> After acceptable masks, ProCode decoding, and metadata QC are available, do self-supervised microscopy embeddings provide useful phenotype representations beyond classical CellProfiler/Brieflow features?
+> After acceptable masks, V5/NWS/T7 ProCode/readout decoding, and metadata QC are available, do self-supervised microscopy embeddings provide useful phenotype representations beyond classical CellProfiler/Brieflow features?
 
 This intentionally separates SSL phenotype representation from upstream segmentation. SSL is not treated as a direct replacement for Brieflow, CellPose, SAM, or manual segmentation. Instead, the pipeline accepts masks from any documented source, records mask provenance, and evaluates SSL features only after upstream QC gates pass.
+
+The current ProCode/readout channels are `V5` / `647` far red, `NWS` / `488` green, and `T7` / `568` orange. The fourth channel is believed to be nucleus and should be treated as a structural/reference channel, not a ProCode identity channel. SSL should be tested only after these readout channels have been decoded or validated.
 
 ## Why SSL is worth testing
 
@@ -34,13 +36,13 @@ SSL contrastive, masked, or teacher-student approaches can be evaluated because 
 
 ## What SSL should be tested against
 
-The benchmark should not only compare model names. It should compare modeling roles:
+The benchmark should not only compare model names. It should compare modeling roles after validated masks and validated ProCode/readouts:
 
-1. Classical CellProfiler/Brieflow morphology features.
+1. Classical CellProfiler/Brieflow morphology features after validated masks and readouts.
 2. Autoencoder-style reconstruction embeddings, if available.
-3. DINOv2/DINOv3 or other SSL ViT embeddings.
+3. DINOv2/DINOv3 or other SSL ViT embeddings after validated masks and readouts.
 4. Domain-specific microscopy SSL checkpoints, if available.
-5. Combined classical + SSL features.
+5. Combined classical + SSL features after validated masks and readouts.
 
 The most important comparison is whether SSL adds biologically meaningful signal beyond classical features without increasing plate, well, batch, imaging-date, or density leakage.
 
@@ -60,7 +62,7 @@ SSL should be considered useful only if it improves at least one downstream biol
 Do not scale SSL if:
 
 - segmentation QC fails;
-- ProCode decoding is ambiguous or crosstalk is high;
+- V5/NWS/T7 ProCode/readout decoding is ambiguous or crosstalk is high;
 - SSL embeddings separate mostly by batch or acquisition metadata;
 - classical features perform equally well with better interpretability;
 - embeddings cannot be traced to a checkpoint, model builder, patch size, channel adapter, and preprocessing configuration.

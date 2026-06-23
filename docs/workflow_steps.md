@@ -14,7 +14,7 @@ This document records each major step in the analysis workflow so humans and cod
 - nuclei mask `[H, W]`;
 - cell mask `[H, W]`;
 - cytoplasm mask `[H, W]`;
-- config values for channel names, mask source, and segmentation QC status.
+- config values for channel names, channel mapping metadata, mask source, and segmentation QC status.
 
 **Expected outputs:**
 
@@ -48,7 +48,38 @@ This document records each major step in the analysis workflow so humans and cod
 
 **Downstream dependency:** All benchmark tables should preserve these metadata fields when possible.
 
-## Step 3: Extract SSL embeddings
+## Step 3: Validate ProCode/readout channels
+
+**Purpose:** Confirm that V5, NWS, and T7 readout channels are clean enough to support barcode-like ProCode identity/signature decoding before downstream phenotype interpretation.
+
+**Primary modules:**
+
+- `src/lib/phenotype/channel_metadata.py`
+- `src/lib/phenotype/procode_analysis.py`
+
+**Expected inputs:**
+
+- multichannel phenotype images or per-cell intensity summaries;
+- channel mapping metadata;
+- V5 / 647 far-red ProCode/readout channel;
+- NWS / 488 green ProCode/readout channel;
+- T7 / 568 orange ProCode/readout channel;
+- nucleus structural/reference channel metadata;
+- expected ProCode codebook/signatures, if available.
+
+**Expected outputs:**
+
+- validated channel metadata;
+- readout QC summary;
+- decoded signatures when sufficient signal data are available;
+- ambiguous readout flags;
+- readable output labels such as `V5_647_far_red`, `NWS_488_green`, `T7_568_orange`, and `nucleus_structural_reference`.
+
+**Downstream dependency:** SSL/classical phenotype comparisons should only be interpreted after segmentation QC and ProCode/readout QC pass. Failed readout QC means SSL interpretation is unreliable or exploratory only.
+
+**QC or stop conditions:** Stop before biological interpretation if V5, NWS, or T7 are missing, if the nucleus channel is mislabeled as a ProCode identity channel, if crosstalk is high, or if expected signatures cannot be decoded cleanly.
+
+## Step 4: Extract SSL embeddings
 
 **Purpose:** Extract ViT patch-token embeddings and pool them inside accepted cell masks.
 
@@ -78,7 +109,7 @@ This document records each major step in the analysis workflow so humans and cod
 
 **Downstream dependency:** Feature benchmarking uses SSL columns by prefix.
 
-## Step 3a: Local patch test before whole-image scaling
+## Step 4a: Local patch test before whole-image scaling
 
 **Purpose:** Test local microscopy images on small 100x100 or 200x200 patches
 before attempting whole-field SSL extraction.
@@ -102,25 +133,27 @@ before attempting whole-field SSL extraction.
 - `outputs/ssl_patch_test/open_patches_in_fiji.ijm` for native-pixel Fiji review.
 
 **Downstream dependency:** Use `patch_phenotypes.tsv` for preliminary
-intensity/morphology QC. Treat `ssl_patch_features.tsv` as biologically
-meaningful only when generated with a trained or deliberately selected transfer
-checkpoint. Random SSL extraction requires `--allow-random-ssl` and is a
-plumbing test only.
+intensity/morphology QC and V5/NWS/T7 readout review. Treat
+`ssl_patch_features.tsv` as biologically meaningful only when generated with a
+trained or deliberately selected transfer checkpoint and after readout QC
+passes. Random SSL extraction requires `--allow-random-ssl` and is a plumbing
+test only.
 
 **QC or stop conditions:** Stop before whole-image scaling if no patches are
 selected, many images fail to load, foreground masks are mostly background, or a
 checkpoint-free run is being interpreted as SSL biology.
 
-## Step 4: ProCode decoding and QC
+## Step 5: ProCode signature decoding and QC
 
-**Purpose:** Decode ProCode on/off signatures and identify ambiguous cells before biological interpretation.
+**Purpose:** Decode V5/NWS/T7 ProCode on/off signatures and identify ambiguous cells before biological interpretation.
 
 **Primary module:** `src/lib/phenotype/procode_analysis.py`
 
 **Expected inputs:**
 
 - phenotype table;
-- ProCode channel columns;
+- ProCode/readout channel columns for V5, NWS, and T7;
+- channel metadata preserving readout versus structural roles;
 - thresholds or threshold-calibration method;
 - expected signatures when known;
 - minimum margin and maximum crosstalk rules.
@@ -132,11 +165,11 @@ checkpoint-free run is being interpreted as SSL biology.
 - flagged ambiguous cells;
 - codebook design summary when expected signatures are provided.
 
-**Downstream dependency:** sgRNA/perturbation feature benchmarks should be interpreted only after ProCode QC is acceptable.
+**Downstream dependency:** sgRNA/perturbation feature benchmarks should be interpreted only after ProCode/readout QC is acceptable.
 
-## Step 5: Benchmark feature sets
+## Step 6: Benchmark feature sets
 
-**Purpose:** Compare classical morphology, SSL embeddings, and combined feature sets.
+**Purpose:** Compare classical morphology, SSL embeddings, and combined feature sets after validated masks and validated readouts.
 
 **Primary module/CLI:** `src/lib/phenotype/benchmarking.py` / `ssl-vit-benchmark`
 
@@ -157,7 +190,7 @@ checkpoint-free run is being interpreted as SSL biology.
 
 **Downstream dependency:** Advisor-facing interpretation and model-selection decisions.
 
-## Step 6: Interpret and decide next model direction
+## Step 7: Interpret and decide next model direction
 
 **Purpose:** Decide whether SSL is worth scaling, whether a segmentation-focused model is needed, or whether classical features are sufficient.
 

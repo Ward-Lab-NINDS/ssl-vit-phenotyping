@@ -6,7 +6,8 @@ __pycache__/
 .mypy_cache/
 .DS_Store
 outputs/
-data/
+data/*
+!data/ground_truth/
 *.egg-info/
 *.nd2
 *.tif
@@ -24,5 +25,6 @@ data/ground_truth/**/*.h5
 data/ground_truth/**/*.hdf5
 !data/ground_truth/manifest.template.csv
 !data/ground_truth/README.md
+!data/ground_truth/channel_metadata.template.csv
 
 demo/synthetic_outputs/

@@ -1,0 +1,5 @@
+image_id,channel_index,channel_name,wavelength_nm,channel_role,color_label,marker_or_readout,notes
+example_image,0,V5,647,procode_readout,far_red,V5,ProCode epitope/readout channel
+example_image,1,NWS,488,procode_readout,green,NWS,ProCode epitope/readout channel; do not expand NWS without codebook
+example_image,2,T7,568,procode_readout,orange,T7,ProCode epitope/readout channel
+example_image,3,nucleus,,structural_reference,unknown,nucleus,Confirm nuclear stain and wavelength

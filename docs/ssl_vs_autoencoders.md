@@ -6,6 +6,8 @@ This document gives the project-level argument for testing self-supervised learn
 
 Autoencoders learn by reconstructing input images. That can produce useful compressed representations, but reconstruction can reward the model for preserving nuisance variation that is not biologically meaningful. SSL methods are worth testing because they can be trained on unlabeled microscopy data while encouraging representations that support transfer, retrieval, clustering, and downstream biological discrimination.
 
+In this ProCode workflow, SSL is being tested after channel identity/readout validation. `V5` / `647` far red, `NWS` / `488` green, and `T7` / `568` orange are ProCode/readout channels, while the likely nucleus channel is a structural/reference channel. The useful comparison is not simply "SSL vs Brieflow"; it is classical Brieflow/CellProfiler features, SSL patch embeddings, and combined classical + SSL features after the same validated masks and validated readouts.
+
 ## What SSL may uniquely capture
 
 SSL may be useful in this project if it captures:
@@ -26,9 +28,9 @@ In this project, an autoencoder baseline is useful if the lab wants to test whet
 
 ## Recommended benchmark
 
-For a convincing comparison, benchmark:
+For a convincing comparison, benchmark every feature set after the same segmentation QC and V5/NWS/T7 ProCode/readout QC:
 
-1. Classical morphology features.
+1. Classical Brieflow/CellProfiler morphology features.
 2. Autoencoder embeddings, if implemented or available.
 3. DINOv2/DINOv3 or other SSL ViT embeddings.
 4. A domain-specific microscopy SSL checkpoint, if available.

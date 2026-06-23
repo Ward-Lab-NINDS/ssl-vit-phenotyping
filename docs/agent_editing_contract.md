@@ -6,11 +6,20 @@ This document is for coding agents and contributors modifying the SSL phenotypin
 
 1. SSL does not replace segmentation in this repository.
 2. Masks are upstream inputs and must have provenance.
-3. Segmentation QC and ProCode decoding QC come before biological interpretation.
+3. Segmentation QC and ProCode/readout decoding QC come before biological interpretation.
 4. Large raw images, masks, z-stacks, embeddings, and checkpoints should not be committed to GitHub.
 5. Every new input/output structure must be documented.
 6. Every new model path must record provenance.
 7. Every new benchmark should include batch/metadata leakage checks when metadata are available.
+
+## Channel metadata rules
+
+1. Do not rename `V5`, `NWS`, or `T7` as generic `ch01`/`ch02`/`ch03` in final outputs if channel mapping metadata are available.
+2. Treat `V5` / `647` far red, `NWS` / `488` green, and `T7` / `568` orange as barcode-like ProCode/readout channels.
+3. Do not treat the nucleus channel as a ProCode identity channel.
+4. Do not assume an expansion or alternate meaning for `NWS` unless a lab codebook is provided.
+5. Do not interpret SSL embeddings as biological phenotype evidence if segmentation QC or ProCode/readout QC failed.
+6. Preserve channel metadata in exported tables and reports.
 
 ## Before changing code
 
@@ -40,6 +49,7 @@ Document:
 - builder path;
 - checkpoint source;
 - expected channel structure;
+- readout versus structural channel roles;
 - input normalization;
 - output tensor shape;
 - whether it returns field-level, patch-level, or cell-level features;

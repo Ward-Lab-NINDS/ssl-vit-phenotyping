@@ -19,7 +19,7 @@ Self-supervised ViT feature extraction and QC benchmarking for CellProfiler/Brie
 
 ## Scope: SSL Does Not Replace Segmentation
 
-This repository now treats SSL/ViT features as a **downstream phenotype representation** layer, not as a direct replacement for segmentation. Cell, nuclei, and cytoplasm masks can come from Brieflow, CellPose, SAM-style workflows, manual annotation, or another segmentation source. The SSL step only becomes interpretable after the upstream masks and ProCode decoding pass QC.
+This repository now treats SSL/ViT features as a **downstream phenotype representation** layer, not as a direct replacement for segmentation. Cell, nuclei, and cytoplasm masks can come from Brieflow, CellPose, SAM-style workflows, manual annotation, or another segmentation source. The SSL step only becomes interpretable after the upstream masks and ProCode/readout decoding pass QC.
 
 What this project does:
 
@@ -33,11 +33,22 @@ What this project does **not** claim:
 
 - SSL embeddings alone replace CellPose, SAM, Brieflow, or manual segmentation;
 - DINOv2/DINOv3 automatically outperform a microscopy-trained checkpoint;
-- learned embeddings can compensate for poor masks, bad ProCode decoding, or unresolved channel/Z-stack artifacts.
+- learned embeddings can compensate for poor masks, bad ProCode/readout decoding, or unresolved channel/Z-stack artifacts.
 
 For advisor-facing project framing, see `docs/ssl_scope.md` and `docs/mask_source_strategy.md`.
 
 Suggested GitHub topics: `self-supervised-learning`, `vision-transformer`, `cellprofiler`, `brieflow`, `phenotyping`, `optical-pooled-screening`, `procode`, `sgrna`, `bioimage-analysis`, `neuroscience`.
+
+## ProCode/readout Channel Identity
+
+The current ProCode/readout mapping should be treated as biological metadata, not generic channel names:
+
+- `V5` / `647` far red is a ProCode/epitope-style readout channel.
+- `NWS` / `488` green is a ProCode/epitope-style readout channel. Do not expand or reinterpret `NWS` unless a lab codebook is provided.
+- `T7` / `568` orange is a ProCode/epitope-style readout channel.
+- The fourth channel is believed to be the nucleus channel and should be treated separately as a structural/reference channel for segmentation, cell counting, image QC, and linking readout signal back to cells.
+
+`V5`, `NWS`, and `T7` support barcode-like ProCode identity/signature decoding. The nucleus channel is not a ProCode identity channel. Brieflow/classical phenotyping remains the interpretable baseline; SSL is a downstream discovery and representation layer after image QC, mask/segmentation QC, and ProCode/readout QC. SSL does not replace segmentation or ProCode decoding, and SSL embeddings should only be interpreted when the readout channels are clean enough to trust.
 
 ## Pipeline Map
 
@@ -49,7 +60,10 @@ External mask source
         ↓
 Segmentation + mask provenance QC gate
         ↓
-ProCode decoding / channel-unmixing QC gate
+ProCode/readout channel QC
+(V5 647 far red, NWS 488 green, T7 568 orange)
+        ↓
+ProCode signature decoding / ambiguity flagging
         ↓
 Classical CellProfiler features, if available
         ↓
@@ -60,7 +74,7 @@ Classical vs SSL vs combined feature benchmark
 sgRNA / perturbation phenotype ranking
 ```
 
-Core rule: SSL embeddings are evaluated as downstream phenotype features and should only be interpreted after segmentation, mask provenance, and ProCode decoding are trustworthy.
+Core rule: SSL embeddings are evaluated as downstream phenotype features and should only be interpreted after segmentation, mask provenance, and ProCode/readout decoding are trustworthy.
 
 The implementation follows the workflow described in the notes:
 
@@ -95,14 +109,14 @@ Important params:
 ```python
 params:
     cp_method="cp_multichannel",
-    channel_names=["nuclei", "marker"],
+    channel_names=["V5", "NWS", "T7", "nucleus"],
     foci_channel_index=1,
     ssl_enable=True,
     ssl_ckpt="outputs/vit_models/ssl_pretraining/dino_best.pth",
     ssl_model_builder="manuscript.models.vit:build_vit_backbone_tokens",
     ssl_device="cuda",
     ssl_patch_size=8,
-    ssl_use_channels=[0, 1],
+    ssl_use_channels=[0, 1, 2, 3],
     ssl_pooling="mean",
     ssl_normalization="zscore",
     ssl_pca_dim=None,
@@ -182,7 +196,7 @@ Validate a dataset manifest with:
 ssl-validate-data-contract --manifest data/ground_truth/manifest.template.csv
 ```
 
-The manifest validator checks required columns, allowed mask-source names, segmentation QC status values, duplicated image IDs, split coverage, and missing channel metadata. It does not require raw files to live inside GitHub.
+The manifest validator checks required columns, allowed mask-source names, segmentation QC status values, duplicated image IDs, split coverage, and missing channel metadata. Use `data/ground_truth/channel_metadata.template.csv` to preserve ProCode/readout roles. The validator does not require raw files to live inside GitHub.
 
 ## Ground-Truth Data
 
@@ -202,14 +216,14 @@ This work is organized around ProCode comparison and on/off combinatorial
 signaling in optical pooled screens. The analysis utilities in
 `src/lib/phenotype/procode_analysis.py` implement the first reliability checks:
 
-- ProCode channel thresholding into binary on/off signatures.
+- V5/NWS/T7 ProCode/readout channel thresholding into binary on/off signatures.
 - Per-cell signal margin and crosstalk summaries for decoding quality.
 - Segmentation quality metrics across cell-density conditions.
 - sgRNA or perturbation separability with kNN and silhouette score.
 - Classical morphology versus SSL embedding comparison.
 - Replicate consistency of perturbation centroids.
 
-The key scale-up gate is clean decoding. If ProCode signal separation is weak or
+The key scale-up gate is clean decoding of the V5, NWS, and T7 readout channels. If ProCode signal separation is weak or
 crosstalk is high, clustering and perturbation mapping can be skewed downstream.
 Lower cell density can be benchmarked directly by comparing touching-cell edges,
 oversized-mask fraction, undersegmentation proxy, and embedding separability.
