@@ -75,22 +75,23 @@ SSL embeddings require a trained or deliberately selected checkpoint. If no
 checkpoint is supplied, the app skips SSL embeddings rather than creating random
 features that could be mistaken for biology.
 
-## Lovable Recommendation
+## Scientific App Architecture
 
-Do not use Lovable as the first implementation path for this scientific app.
-Lovable is useful for fast product scaffolding and could help later with a more
-polished public-facing interface, but the first working lab app should stay
-repo-native because it needs:
+The first working lab app should stay repo-native because it needs:
 
 - local high-resolution TIFF handling;
 - deterministic patch extraction;
 - consistent TSV/report outputs;
 - compatibility with Fiji and Jupyter review;
-- simple GitHub version control.
+- simple GitHub version control;
+- explicit V5/NWS/T7 ProCode/readout channel handling;
+- clear separation between ProCode identity readouts and the nucleus structural
+  reference channel.
 
 A future production architecture could use a polished React/Next.js frontend
-with a Python FastAPI backend that calls the same analysis functions. For now,
-Streamlit gives the best lab-accessible route with the lowest scientific risk.
+with a Python FastAPI backend that calls the same analysis functions. The
+scientific backend should remain shared with the CLI so readout QC, patch
+selection, phenotype tables, and SSL features are reproducible.
 
 ## VS Code And Codex Plugins
 

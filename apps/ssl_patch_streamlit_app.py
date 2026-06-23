@@ -26,7 +26,7 @@ SUPPORTED_UPLOAD_TYPES = ["tif", "tiff", "png", "jpg", "jpeg"]
 
 
 st.set_page_config(
-    page_title="SSL Patch Phenotyping",
+    page_title="ProCode Patch Phenotyping",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -141,48 +141,90 @@ def phenotype_scatter(phenotypes: pd.DataFrame, x_col: str, y_col: str) -> None:
 
 
 def synopsis() -> None:
+    st.subheader("Biological Purpose")
+    st.write(
+        "This app is built around ProCode microscopy readouts, where epitope-style "
+        "signals are not just image channels. V5, NWS, and T7 are barcode-like "
+        "readout channels that help connect each segmented cell back to an encoded "
+        "identity or signature. The nucleus channel is handled separately as a "
+        "structural reference for cell finding, counting, QC, and linking readout "
+        "signal to individual cells."
+    )
+    st.markdown(
+        """
+        **Current channel meaning**
+
+        - `V5` / `647` far red: ProCode/epitope-style readout
+        - `NWS` / `488` green: ProCode/epitope-style readout
+        - `T7` / `568` orange: ProCode/epitope-style readout
+        - `nucleus`: structural/reference channel, not a ProCode identity bit
+        """
+    )
+    st.subheader("Why ProCodes Matter")
+    st.markdown(
+        """
+        - ProCodes let pooled perturbation experiments carry barcode-like identity
+          information inside the image itself.
+        - Epitope/readout quality determines whether cell identities are trustworthy
+          before phenotype analysis begins.
+        - Ambiguous V5/NWS/T7 signal, crosstalk, saturation, or weak separation can
+          make downstream clusters look biological when they are really readout
+          artifacts.
+        - The nucleus/reference channel anchors the readout back to cells, but it
+          should not be decoded as part of the ProCode signature.
+        - SSL is useful only after this readout logic is respected: it describes
+          phenotype state, not ProCode identity.
+        """
+    )
     st.subheader("What The App Does")
     st.write(
         "This app turns local microscopy images into reproducible patch-level phenotype "
-        "outputs. It is designed as a lab-accessible front end to the same patch runner "
-        "used by the command line and notebook workflows."
+        "outputs. It is designed as a lab-accessible review layer for ProCode/readout "
+        "QC, interpretable patch phenotypes, and SSL-ready morphology analysis before "
+        "whole-field scaling."
     )
     col1, col2 = st.columns(2)
     with col1:
         st.markdown(
             """
-            **Classical patch phenotypes**
+            **Immediate interpretable readouts**
 
             - Foreground fraction
             - Foreground/background intensity separation
+            - Per-channel intensity summaries
             - Connected-component count
             - Largest-object area and elongation
             - Boundary and gradient summaries
 
-            These are interpretable and useful for QC immediately.
+            These support image quality, readout quality, and morphology QC before
+            any embedding is treated as biology.
             """
         )
     with col2:
         st.markdown(
             """
-            **SSL patch embeddings**
+            **Downstream SSL phenotype layer**
 
             - Require a trained or validated checkpoint
             - Preserve local texture and context as patch tokens
             - Can be benchmarked against classical morphology
-            - Should be interpreted only after QC and batch checks
+            - Should be interpreted only after segmentation and ProCode/readout QC
 
-            SSL is a representation layer, not a segmentation replacement.
+            SSL is a phenotype representation layer, not a segmentation tool and
+            not a ProCode decoder.
             """
         )
     st.divider()
-    st.subheader("Why This Route Instead Of Lovable First?")
-    st.write(
-        "For the first lab-accessible version, a repo-native Streamlit app is better than "
-        "Lovable because the app must handle local high-resolution TIFF data, preserve "
-        "deterministic outputs, and run the exact same analysis code as the CLI. Lovable "
-        "could be useful later for a polished public-facing interface, but it should sit "
-        "on top of a validated backend rather than become the source of scientific truth."
+    st.subheader("Reasoning Chain")
+    st.markdown(
+        """
+        1. Confirm image quality and channel mapping.
+        2. Treat V5/NWS/T7 as ProCode/readout channels, not generic fluorescence.
+        3. Use the nucleus channel as structural reference for cells and masks.
+        4. Check readout separation and ambiguity before interpreting phenotype.
+        5. Compare classical features and SSL embeddings only after the upstream
+           biological identity gates are credible.
+        """
     )
     st.subheader("Brieflow Alignment")
     st.write(
@@ -194,10 +236,14 @@ def synopsis() -> None:
 
 
 def main() -> None:
-    st.title("SSL Patch Phenotyping")
+    st.title("ProCode Patch Phenotyping")
     st.caption(
-        "Local high-resolution patch extraction, morphology/intensity phenotyping, "
-        "and SSL-ready review for Brieflow-style microscopy workflows."
+        "High-resolution patch review for V5/NWS/T7 ProCode readouts, nucleus-linked "
+        "cell context, interpretable morphology/intensity phenotypes, and downstream SSL."
+    )
+    st.info(
+        "Interpretation order: image QC -> nucleus/mask QC -> V5/NWS/T7 readout QC "
+        "-> ProCode ambiguity review -> classical and SSL phenotype comparison."
     )
 
     with st.sidebar:

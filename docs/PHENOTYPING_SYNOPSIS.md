@@ -106,7 +106,7 @@ the CLI. A production website can come later with a React/Next.js frontend and a
 Python FastAPI backend, but the scientific backend should remain shared with the
 repo workflow.
 
-Lovable can help later with a polished product-style interface, but it should
-not replace the first local scientific implementation because upload handling,
-TIFF fidelity, output reproducibility, and checkpoint-backed SSL logic need to
-stay explicit and version-controlled.
+The key design requirement is biological traceability: V5/NWS/T7 readout
+channels must remain distinguishable from the nucleus structural reference
+channel, readout QC must be visible before SSL interpretation, and every output
+table should remain reproducible from the same version-controlled analysis code.
