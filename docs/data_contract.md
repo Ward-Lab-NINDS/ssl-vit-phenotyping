@@ -106,6 +106,12 @@ outputs/
     ssl_embeddings.tsv
   manifests/
     dataset_manifest.csv
+  ssl_patch_test/
+    patches/
+    patch_manifest.tsv
+    patch_phenotypes.tsv
+    ssl_patch_features.tsv
+    ssl_patch_test_report.md
 ```
 
 ## 6. Agent safety rules
