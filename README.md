@@ -134,6 +134,22 @@ bash demo/run_demo.sh
 
 The demo writes a small phenotype table and benchmark outputs under `demo/synthetic_outputs/`.
 
+## Local Web App
+
+A Streamlit app is available for lab-accessible patch review, upload/folder
+analysis, zoomable patch inspection, phenotype scatterplots, QC reports, and
+output downloads:
+
+```bash
+pip install -e ".[webapp]"
+streamlit run apps/ssl_patch_streamlit_app.py
+```
+
+See `docs/WEB_APP.md`.
+
+For a concise lab-facing summary of phenotype outputs and review surfaces, see
+`docs/PHENOTYPING_SYNOPSIS.md`.
+
 
 ## Future Direction and Data Contract
 

@@ -30,6 +30,10 @@ notebook = [
   "ipympl",
   "ipywidgets",
 ]
+webapp = [
+  "streamlit",
+  "plotly",
+]
 
 [project.scripts]
 ssl-vit-benchmark = "lib.phenotype.benchmarking:main"
